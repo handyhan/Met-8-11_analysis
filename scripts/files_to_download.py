@@ -31,7 +31,7 @@ for time in times:
     download_list.extend([time_yesterday,time_day_before,time_day_before_b])
     
     
-with open('./DownloadList.txt', 'wb') as csvfile:
+with open('C:/Users/Hannah.N/Documents/Earth_Observation/sandbox/scripts/DownloadList.txt', 'wb') as csvfile:
     writer = csv.writer(csvfile)
     for i in download_list:
         writer.writerows([[i]])

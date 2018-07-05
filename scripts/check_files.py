@@ -9,8 +9,10 @@ import os
 
 
 
+BaseDir = "C:/Users/Hannah.N/Documents/Earth_Observation/sandbox"
 
-dates = pd.date_range(start='2018-06-09',end='2018-06-28')
+
+dates = pd.date_range(start='2018-06-09',end='2018-07-04')
 dates = dates.format(formatter=lambda x: x.strftime('%Y%m%d'))
 
 times = pd.date_range(start='00:00',end='23:45', freq='15min')
@@ -21,10 +23,10 @@ for date in dates:
     n = 0
     print  date
     for time in times:
-        m8 = "./NetCDF_LSASAF_MSG-IODC_FRP-PIXEL-ListProduct_IODC-Disk_" + date+time
-        m11 = "./HDF5_LSASAF_MSG_FRP-PIXEL-ListProduct_MSG-Disk_" + date +time
-        m8_QP = "./NetCDF_LSASAF_MSG-IODC_FRP-PIXEL-QualityProduct_IODC-Disk_" + date+time
-        m11_QP = "./HDF5_LSASAF_MSG_FRP-PIXEL-QualityProduct_MSG-Disk_" + date +time
+        m8 = BaseDir+ "/Data/NetCDF_LSASAF_MSG-IODC_FRP-PIXEL-ListProduct_IODC-Disk_" + date+time
+        m11 = BaseDir+"/Data/HDF5_LSASAF_MSG_FRP-PIXEL-ListProduct_MSG-Disk_" + date +time
+        m8_QP = BaseDir+"/Data/NetCDF_LSASAF_MSG-IODC_FRP-PIXEL-QualityProduct_IODC-Disk_" + date+time
+        m11_QP = BaseDir+"/Data/HDF5_LSASAF_MSG_FRP-PIXEL-QualityProduct_MSG-Disk_" + date +time
         products = [m8,m11,m11_QP,m8_QP ]
         for  product in products:
             
@@ -39,7 +41,7 @@ for date in dates:
         missing_list.extend([date])
          
 
-with open('./CheckList.txt', 'wb') as csvfile:
+with open(BaseDir+'/Data/CheckList.txt', 'wb') as csvfile:
     writer = csv.writer(csvfile)
     for i in missing_list:
         writer.writerows([[i]])

@@ -13,6 +13,7 @@ import os
 pd.set_option('display.max_columns', 500)
 
 
+
 def roundup(x):
     return int(math.ceil(x / 100.0)) * 100
 
@@ -23,10 +24,11 @@ def roundup(x):
 
 def extract_data(date, time):
     #print date
-    m8 = "./Data/NetCDF_LSASAF_MSG-IODC_FRP-PIXEL-ListProduct_IODC-Disk_" + date+time
-    m11 = "./Data/HDF5_LSASAF_MSG_FRP-PIXEL-ListProduct_MSG-Disk_" + date +time
-    m8_QP = "./Data/NetCDF_LSASAF_MSG-IODC_FRP-PIXEL-QualityProduct_IODC-Disk_" + date+time
-    m11_QP = "./Data/HDF5_LSASAF_MSG_FRP-PIXEL-QualityProduct_MSG-Disk_" + date +time
+    BaseDir = "C:/Users/Hannah.N/Documents/Earth_Observation/sandbox"
+    m8 = BaseDir +"/Data/NetCDF_LSASAF_MSG-IODC_FRP-PIXEL-ListProduct_IODC-Disk_" + date+time
+    m11 = BaseDir +"/Data/HDF5_LSASAF_MSG_FRP-PIXEL-ListProduct_MSG-Disk_" + date +time
+    m8_QP = BaseDir +"/Data/NetCDF_LSASAF_MSG-IODC_FRP-PIXEL-QualityProduct_IODC-Disk_" + date+time
+    m11_QP = BaseDir + "/Data/HDF5_LSASAF_MSG_FRP-PIXEL-QualityProduct_MSG-Disk_" + date +time
     
     
     if os.path.exists(m8) and os.path.exists(m11):

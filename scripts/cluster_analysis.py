@@ -168,7 +168,7 @@ def fit_and_plot_OLS_bins(fire_data):
                 z = (fit_points)*slope + intercept
                 textstr1 ='y = %.2fx + %.2f \n Fire count=%d \n R$^{2}$=%.3f\n SE=%.3f'%(slope, intercept,fire_count, r2,std_err)
                 textstr2 = 'Bias=%.3f \n  Scatter =%.3f \n RMSD=%.3f'%(bias, SD, rmsd)
-                plot_scatter_fit(group_fire['M11_summed_FRP'],group_fire['M8_summed_FRP'],group_fire['VZA_diff'],z,perf_fit,fit_points,bin,('./Plots/FRP_ols'+plot_tag), textstr1,textstr2,vza_max,fire_max)
+                plot_scatter_fit(group_fire['M11_summed_FRP'],group_fire['M8_summed_FRP'],1,z,perf_fit,fit_points,bin,('./Plots/FRP_ols'+plot_tag), textstr1,textstr2,vza_max,fire_max)
                 #plot_scatter_residuals(group_fire['M11_summed_FRP'],group_fire['M8_summed_FRP'],z,residual,slope,intercept,vza_max,fire_count,bin,('./Plots/FRP_OLS'+plot_tag))
        
 
@@ -250,7 +250,7 @@ def plot_bin_maps(fire_data,fires_m8,title):
     plot_single_map(latitude,longitude,(title +plot_tag))
   
     
-
+"""
 dates = pd.date_range(start='2018-06-09',end='2018-06-20')
 dates = dates.format(formatter=lambda x: x.strftime('%Y%m%d'))
 plot_tag = "_post_QP_negative_" 
@@ -286,6 +286,12 @@ stats_f = fit_and_plot_OLS_bins(fire_data)
 #labels = ['Slope','R$^2$','Standard Error']
 #plot_stats(stats_f['VZA_BIN'][:],stats_f['SLOPE'][:],stats_f['R2'][:],stats_f['SE'][:],'./Plots/LinReg_params',plot_tag,labels)
 #stats_f.to_csv('./fire_stats_table' +plot_tag +'.csv')
+
+
+
+################################ runnint cose
+"""
+
 
 
   
