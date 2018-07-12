@@ -150,7 +150,7 @@ def plot_pixel_size(plot_list):
 #plot_pixel_size(plot_list)
     
 
-def plot_single_map(latitude,longitude,title):
+def plot_single_map(latitude,longitude,colour,title):
     #formated_dt = date_time[0:4]+'-'+date_time[4:6]+'-'+date_time[6:8]+'_'+date_time[8:10]+':'+ date_time[10:12] +':00'    
     fig = plt.figure()
     #FRP = df['FRP'].values
@@ -160,8 +160,8 @@ def plot_single_map(latitude,longitude,title):
     #        llcrnrlon=-180,urcrnrlon=180,lat_ts=20,resolution='c')
     #(llcrnrlon=-35,llcrnrlat=-40,urcrnrlon=90,urcrnrlat=40,
     #                               resolution='i',projection='tmerc',lon_0=15,lat_0=0,ax=ax)
-    m_m8 = Basemap(llcrnrlon=-35,llcrnrlat=-40,urcrnrlon=60,urcrnrlat=40,
-                                   resolution='i',projection='tmerc',lon_0=15,lat_0=0,ax=ax) 
+    m_m8 = Basemap(projection='ortho',lat_0=0,lon_0=40 ) #llcrnrlon=-35,llcrnrlat=-40,urcrnrlon=60,urcrnrlat=40,
+                                   #resolution='i',projection='tmerc',lon_0=15,lat_0=0,ax=ax) 
     m_m8.drawcoastlines(linewidth = 0.5)
     m_m8.drawmapboundary()
     #m.fillcontinents(lake_color='aqua',zorder=0)
@@ -184,7 +184,7 @@ def plot_single_map(latitude,longitude,title):
 
     #latitude = df3['mean_lat'].values
     #longitude = df3['mean_long'].values    
-    sc = plt.scatter(x, y, c='orange', s = 8, alpha = 0.8, cmap='hot',marker =',',linewidth=0.0, label = 'VZA Binned FRP')
+    sc = plt.scatter(x, y, c=colour, s = 8, alpha = 0.8, cmap='hot',marker =',',linewidth=0.0, label = 'VZA Binned FRP')
 
     x,y = m_m8(-3.4,0) 
     m_m8.plot(x,y,"bo", ms = 3, label = 'Met-11 Sub-satellite loc')   ; m_m8.plot(x,y,"o", ms = 10, markerfacecolor = "none", markeredgecolor= "b")#,alpha = 0.5) #; m_m8.plot(x,y,"o", ms = 100,markerfacecolor = "none", markeredgecolor= "b") ; m_m8.plot(x,y,"o", ms = 150,markerfacecolor = "none", markeredgecolor= "b")  ;  m_m8.plot(x,y,"o", ms = 200,markerfacecolor = "none", markeredgecolor= "b")     
@@ -270,6 +270,8 @@ def plot_scatter_fit(vza_switch,df,x,y,colour,z, perf_fit,fit_points, subtitle, 
         plt.tight_layout()
         plt.savefig(title + subtitle, dpi = 800, bbox_inches='tight')
         plt.close()
+
+
 
 
 
