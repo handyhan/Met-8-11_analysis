@@ -88,9 +88,9 @@ def proccess_grid(df,lon,lat, sat,resolution):
     vza_1deg = vza_1deg[vza_1deg['loc_marker'].isin(unique)]  
     vza_1deg = vza_1deg.sort_values(['loc_marker'])
     grid['VZA'] = vza_1deg['VZA'].values[:]
-    grid = grid.drop(['loc_marker']
+    grid = grid.drop(columns=['loc_marker'])
     
-    return grid, fire_ids
+    return grid,fire_ids
     
 
 
@@ -137,8 +137,8 @@ lat = np.arange(latmin,(latmax+resolution),resolution)
     #m8_grid = pd.DataFrame({'MIN_LAT':lat_min,'MAX_LAT':lat_max,'MIN_LONG':lon_min,'MAX_LONG':lon_max,'GRID_NO': None,'summed_FRP': 0,'FRP_uncertainty':0,'mean_vza': 0, 'pixel_count':0 , 'SAT': 8})
 
 
-
-dates = pd.date_range(start='2018-06-09',end='2018-07-11')
+"""
+dates = pd.date_range(start='2018-06-09',end='2018-07-15')
 dates = dates.format(formatter=lambda x: x.strftime('%Y%m%d'))
 for date in dates:
     print "NOTE: Generating fires for "  + date
@@ -154,7 +154,7 @@ for date in dates:
             
         else:    
             #grid = 
-            write_gridded_file(lonmin,lonmax,latmin,latmax,m8_df,m11_df)
+            grid = write_gridded_file(lonmin,lonmax,latmin,latmax,m8_df,m11_df)
             #vza_1deg = pd.read_csv(BaseDir + "/txt_data/MET_" + "8" + "_1Deg_VZA")
             
             #plot_single_map(vza_1deg['LATITUDE'].values[:],vza_1deg['LONGITUDE'].values[:],vza_1deg['VZA'].values[:],'met8_#_VZA_map')
@@ -165,7 +165,7 @@ for date in dates:
             grid.to_csv(BaseDir +"/txt_data/AREA_grid_"+date, mode=mode,header=header_1,index=False) 
             header_1=False
             
-            
+"""           
 #print grid 
 #fit_and_plot_OLS_bins(grid)
 #fit_and_plot_ODR_bins(grid)
@@ -186,7 +186,7 @@ for date in dates:
     frp = dataset.createVariable('Summed_FRP', np.float32,('time','lat','lon'))
     frp_err = dataset.createVariable('FRP_uncertainty', np.float32,('time','lat','lon'))
     
-
+"""
 def regrid_vza(lonmin,lonmax,latmin,latmax):
     
     lon = np.arange(lonmin,(lonmax+resolution),resolution)
@@ -195,7 +195,7 @@ def regrid_vza(lonmin,lonmax,latmin,latmax):
     deg_1_df['central_lat'] = deg_1_df['lat'] + 0.5 
     deg_1_df['central_long'] = deg_1_df['long'] + 0.5 
     
-    m11_vza = BaseDir +"/SEVIRI_Static/HDF5_LSASAF_MSG_VZA_IODC-Disk_201807121500"
+    m11_vza = BaseDir +"/SEVIRI_Static/HDF5_LSASAF_MSG_VZA_IODC-Disk_201808131045"
     m11_lat = BaseDir +"/SEVIRI_Static/HDF5_LSASAF_MSG_LAT_IODC-Disk_201711300000"
     m11_long = BaseDir +"/SEVIRI_Static/HDF5_LSASAF_MSG_LON_IODC-Disk_201711300000"
     
@@ -207,7 +207,8 @@ def regrid_vza(lonmin,lonmax,latmin,latmax):
     #for file in msg_rows[1:]:
     #    m11_lat_lon_n=pd.read_csv(BaseDir + "/txt_data/MSG_lat_lon_"+str(file))
     #    m11_lat_lon =  m11_lat_lon.append(m11_lat_lon_n,ignore_index=True)
-    
+
+   
     #plot_single_map(m11_lat_lon['LONGITUDE'].values[:],m11_lat_lon['LATITUDE'].values[:],"PLOT_M8_PIX")
     m11_lat_lon = m11_lat_lon[(m11_lat_lon['LONGITUDE'] >= (lonmin*100)) & (m11_lat_lon['LONGITUDE'] <= (lonmax*100))]
     m11_lat_lon = m11_lat_lon[(m11_lat_lon['LATITUDE'] >= (latmin*100)) & (m11_lat_lon['LATITUDE'] <= (latmax*100))]
@@ -235,8 +236,16 @@ def regrid_vza(lonmin,lonmax,latmin,latmax):
     vza_grid['LONGITUDE'] =  vza_grid.lon_index.apply(lambda x: deg_1_df['central_long'].iloc[x])
     vza_grid = vza_grid[vza_grid['VZA'] > 0 ] 
     #vza_corrupt.to_csv("C:/Users/Hannah.N/Documents/Earth_Observation/sandbox/txt_data/CORRUPT",header=True,index=True)
-    vza_grid.to_csv("C:/Users/Hannah.N/Documents/Earth_Observation/sandbox/txt_data/MET_8_1Deg_VZA",header=True,index=True)
+    vza_grid.to_csv("C:/Users/Hannah.N/Documents/Earth_Observation/sandbox/txt_data/MET_8_1Deg_VZA_TEST2",header=True,index=True)
+    
+    print vza_grid[(vza_grid['VZA'] < 2) & (vza_grid['VZA'] > -2)]
     vza_grid.plot(x='LONGITUDE',y='LATITUDE',c = 'VZA', kind='scatter')    
     print strftime("%Y-%m-%d %H:%M:%S", gmtime())
-
-"""
+    
+    
+    
+    
+regrid_vza(lonmin,lonmax,latmin,latmax)
+    
+#m11_vza = pd.read_csv("C:/Users/Hannah.N/Documents/Earth_Observation/sandbox/txt_data/MET_8_1Deg_VZA_TEST")
+#print m11_vza[(m11_vza['VZA'] < 2) & (m11_vza['VZA'] > -2)]

@@ -1,5 +1,6 @@
 from matplotlib import rcParams
 import matplotlib.pyplot as plt
+import matplotlib
 from mpl_toolkits.basemap import Basemap, cm
 import matplotlib as mpl
 import matplotlib.colors as colors
@@ -160,7 +161,7 @@ def plot_single_map(latitude,longitude,colour,title):
     #        llcrnrlon=-180,urcrnrlon=180,lat_ts=20,resolution='c')
     #(llcrnrlon=-35,llcrnrlat=-40,urcrnrlon=90,urcrnrlat=40,
     #                               resolution='i',projection='tmerc',lon_0=15,lat_0=0,ax=ax)
-    m_m8 = Basemap(projection='ortho',lat_0=0,lon_0=40 ) #llcrnrlon=-35,llcrnrlat=-40,urcrnrlon=60,urcrnrlat=40,
+    m_m8 = Basemap(projection='ortho',lat_0=0,lon_0=20 ) #llcrnrlon=-35,llcrnrlat=-40,urcrnrlon=60,urcrnrlat=40,
                                    #resolution='i',projection='tmerc',lon_0=15,lat_0=0,ax=ax) 
     m_m8.drawcoastlines(linewidth = 0.5)
     m_m8.drawmapboundary()
@@ -184,12 +185,13 @@ def plot_single_map(latitude,longitude,colour,title):
 
     #latitude = df3['mean_lat'].values
     #longitude = df3['mean_long'].values    
-    sc = plt.scatter(x, y, c=colour, s = 8, alpha = 0.8, cmap='hot',marker =',',linewidth=0.0, label = 'VZA Binned FRP')
-
-    x,y = m_m8(-3.4,0) 
-    m_m8.plot(x,y,"bo", ms = 3, label = 'Met-11 Sub-satellite loc')   ; m_m8.plot(x,y,"o", ms = 10, markerfacecolor = "none", markeredgecolor= "b")#,alpha = 0.5) #; m_m8.plot(x,y,"o", ms = 100,markerfacecolor = "none", markeredgecolor= "b") ; m_m8.plot(x,y,"o", ms = 150,markerfacecolor = "none", markeredgecolor= "b")  ;  m_m8.plot(x,y,"o", ms = 200,markerfacecolor = "none", markeredgecolor= "b")     
+    sc = plt.scatter(x, y, c=colour, s = 8, alpha = 0.8, cmap='autumn',marker =',',linewidth=0.0)
+    cb = plt.colorbar(sc)
+    cb.ax.set_ylabel('Absolute VZA difference (Degrees)',fontsize=9)
+    x,y = m_m8(0,0) 
+    m_m8.plot(x,y,"ro", ms = 3, label = 'Met-11 Sub-satellite loc')   ; m_m8.plot(x,y,"o", ms = 10, markerfacecolor = "none", markeredgecolor= "r")#,alpha = 0.5) #; m_m8.plot(x,y,"o", ms = 100,markerfacecolor = "none", markeredgecolor= "b") ; m_m8.plot(x,y,"o", ms = 150,markerfacecolor = "none", markeredgecolor= "b")  ;  m_m8.plot(x,y,"o", ms = 200,markerfacecolor = "none", markeredgecolor= "b")     
     x,y = m_m8(41.5,0) 
-    m_m8.plot(x,y,"go", ms = 3, label = 'Met-8 Sub-satellite loc')   ;  m_m8.plot(x,y,"o", ms = 10, markerfacecolor = "none", markeredgecolor= "g")#, alpha = 0.5) #; m_m8.plot(x,y,"o", ms = 100,markerfacecolor = "none", markeredgecolor= "g") ; m_m8.plot(x,y,"o", ms = 150,markerfacecolor = "none", markeredgecolor= "g")  ;  m_m8.plot(x,y,"o", ms = 200,markerfacecolor = "none", markeredgecolor= "g")  
+    m_m8.plot(x,y,"bo", ms = 3, label = 'Met-8 Sub-satellite loc')   ;  m_m8.plot(x,y,"o", ms = 10, markerfacecolor = "none", markeredgecolor= "b")#, alpha = 0.5) #; m_m8.plot(x,y,"o", ms = 100,markerfacecolor = "none", markeredgecolor= "g") ; m_m8.plot(x,y,"o", ms = 150,markerfacecolor = "none", markeredgecolor= "g")  ;  m_m8.plot(x,y,"o", ms = 200,markerfacecolor = "none", markeredgecolor= "g")  
     plt.title(title,fontsize=9)
     
     plt.legend(loc='lower left', fontsize=7)
@@ -226,8 +228,8 @@ def plot_scatter_fit(vza_switch,df,x,y,colour,z, perf_fit,fit_points, subtitle, 
         axes.set_xlim([0,fire_max])
         axes.set_ylim([0,fire_max])
         ax1.legend(loc='upper left', fontsize=8)
-        plt.xticks(np.arange(0, fire_max+1, step=500),fontsize=7)
-        plt.yticks(np.arange(0, fire_max+1, step=500),fontsize=7)
+        plt.xticks(np.arange(0, fire_max+1, step=2),fontsize=7)
+        plt.yticks(np.arange(0, fire_max+1, step=2),fontsize=7)
         plt.setp(ax1.get_xticklabels(), rotation=40, horizontalalignment='right')
         ax1.text(0.95,0.05,textstr1, transform=ax1.transAxes, fontsize=8,
             verticalalignment='bottom',ha='right',bbox=dict(facecolor='white', alpha = 0.8, edgecolor='black', boxstyle='round,pad=1'))# bbox=props)
@@ -245,7 +247,7 @@ def plot_scatter_fit(vza_switch,df,x,y,colour,z, perf_fit,fit_points, subtitle, 
         fig = plt.figure(figsize = [5,5])
         ax1 = fig.add_subplot(111)
         
-        sc = ax1.scatter(x,y, c=colour, alpha = 0.5,vmin=0,vmax=c_max,linewidth=0.0)
+        sc = ax1.scatter(x,y, c=colour, alpha = 0.5,vmin=0,vmax=c_max,linewidth=0.0,cmap='bwr')
         #ax1.scatter(outlier_fires['M11_summed_FRP'],outlier_fires['M11_summed_FRP'], c= 'r', alpha = 0.1, linewidth=0.3 )
         ax1.set_ylabel(y,fontsize=9)
         ax1.set_xlabel(x,fontsize=9)
@@ -259,8 +261,8 @@ def plot_scatter_fit(vza_switch,df,x,y,colour,z, perf_fit,fit_points, subtitle, 
         axes.set_xlim([0,fire_max])
         axes.set_ylim([0,fire_max])
         ax1.legend(loc='upper left', fontsize=8)
-        plt.xticks(np.arange(0, fire_max+1, step=500),fontsize=7)
-        plt.yticks(np.arange(0, fire_max+1, step=500),fontsize=7)
+        plt.xticks(np.arange(0, fire_max+1, step=2),fontsize=7)
+        plt.yticks(np.arange(0, fire_max+1, step=2),fontsize=7)
         plt.setp(ax1.get_xticklabels(), rotation=40, horizontalalignment='right')
         ax1.text(0.95,0.05,textstr1, transform=ax1.transAxes, fontsize=8,
             verticalalignment='bottom',ha='right',bbox=dict(facecolor='white', alpha = 0.8, edgecolor='black', boxstyle='round,pad=1'))# bbox=props)
@@ -275,24 +277,24 @@ def plot_scatter_fit(vza_switch,df,x,y,colour,z, perf_fit,fit_points, subtitle, 
 
 
 
-def plot_ODR_scatter_residuals(m11_frp,m8_frp,m11_err,m8_err,fit_y, perf_fit,fit_points, residual,adjusted_err,params,vza_max,fire_max,fire_count,subtit,title):
+def plot_ODR_scatter_residuals(m11_frp,m8_frp,m11_err,m8_err,fit_y, perf_fit,fit_points, residual,adjusted_err,params,vza_max,fire_max,fire_count,subtit,title,textstr1):
     fig = plt.figure(figsize = [5,5])
     ax1 = fig.add_subplot(111)
     plt.ylabel("M8 FRP [MW]")
     plt.xlabel("M11 FRP [MW]")
     plt.title("ODR Fit to Data")
-    ax1.plot(m11_frp,m8_frp,'.',color = 'k',ms =4, linewidth=0.0)
+    ax1.plot(m11_frp,m8_frp,'.',color = 'k',ms =4, linewidth=0.0, alpha = 0.4)
     ax1.errorbar(m11_frp, m8_frp, xerr=m11_err, yerr=m8_err, fmt='none',ecolor='darkorange', alpha = 0.7, label = 'FRP uncertainty')
     ax1.plot(fit_points,perf_fit,color = 'b', label = '1:1 fit', ls = 'dashdot')
     ax1.plot(fit_points,fit_y,color = 'r', label = 'ODR fit')
     axes = plt.gca()
     axes.set_xlim([0,fire_max])
     axes.set_ylim([0,fire_max])
-    plt.xticks(np.arange(0, fire_max+1, step=500),fontsize=7)
-    plt.yticks(np.arange(0, fire_max+1, step=500),fontsize=7)
+    plt.xticks(np.arange(0, fire_max+1, step=500),fontsize=9)
+    plt.yticks(np.arange(0, fire_max+1, step=500),fontsize=9)
     plt.setp(ax1.get_xticklabels(), rotation=30, horizontalalignment='right')
-    textstr1 ='Fire count=%d \n slope=%.3f \n intercept=%.3f'%(fire_count,params[1],params[0])
-    ax1.text(0.95,0.95,textstr1, transform=ax1.transAxes, fontsize=8,va='top',ha='right', bbox=dict(facecolor='white', alpha = 0.8, edgecolor='black', boxstyle='round,pad=1'))
+    #textstr1 ='Fire count=%d \n slope=%.3f \n intercept=%.3f'%(fire_count,params[1],params[0])
+    ax1.text(0.95,0.15,textstr1, transform=ax1.transAxes, fontsize=8,va='top',ha='right', bbox=dict(facecolor='white', alpha = 0.8, edgecolor='black', boxstyle='round,pad=1'))
     ax1.legend(loc='upper left', fontsize=8)
     ax1.grid()    
     
@@ -316,17 +318,17 @@ def plot_ODR_scatter_residuals(m11_frp,m8_frp,m11_err,m8_err,fit_y, perf_fit,fit
 
    
 
-def plot_scatter_area(vza_switch,x,y,colour,z, perf_fit,fit_points, subtitle, title,textstr1,textstr2,c_max,fire_max): # 
+def plot_scatter_area(vza_switch,x,y,colour,z, perf_fit,fit_points, subtitle, title,textstr1,textstr2,c_max,fire_max, xaxis_lable,yaxis_lable,scaling_factor): # 
     
+    #min_y = math.floor(min(y))
     if vza_switch == False:
 
-        fig = plt.figure(figsize = [5,5])
+        fig = plt.figure(figsize = [5,7])
         ax1 = fig.add_subplot(111)
-        
-        sc = ax1.scatter(x,y, c='orangered',s=15, alpha = 0.5,linewidth=0.0)
+        sc = ax1.scatter(x,y, c='orangered',s=15, alpha = 0.6,linewidth=0.0)
         #ax1.scatter(outlier_fires['M11_summed_FRP'],outlier_fires['M11_summed_FRP'], c= 'r', alpha = 0.1, linewidth=0.3 )
-        ax1.set_ylabel(' M8 Pixel count ',fontsize=9)
-        ax1.set_xlabel('M11 Pixel count',fontsize=9)
+        ax1.set_ylabel( yaxis_lable ,fontsize=9)
+        ax1.set_xlabel(xaxis_lable,fontsize=9)
         plt.subplots_adjust(top = 0.75)
         ax1.plot(fit_points,z,color='b' , label = 'OLS fit')
         ax1.plot(fit_points,perf_fit,color = 'k', label = '1:1 fit', ls = 'dashdot')
@@ -335,8 +337,9 @@ def plot_scatter_area(vza_switch,x,y,colour,z, perf_fit,fit_points, subtitle, ti
         axes.set_xlim([0,fire_max])
         axes.set_ylim([0,fire_max])
         ax1.legend(loc='upper left', fontsize=8)
-        plt.xticks(np.arange(0, fire_max+1, step=10),fontsize=7)
-        plt.yticks(np.arange(0, fire_max+1, step=10),fontsize=7)
+        
+        plt.xticks(np.arange(0, fire_max+1, step=scaling_factor),fontsize=7)
+        plt.yticks(np.arange(0, fire_max+1, step=scaling_factor),fontsize=7)
         plt.setp(ax1.get_xticklabels(), rotation=40, horizontalalignment='right')
         ax1.text(0.95,0.05,textstr1, transform=ax1.transAxes, fontsize=8,
             verticalalignment='bottom',ha='right',bbox=dict(facecolor='white', alpha = 0.8, edgecolor='black', boxstyle='round,pad=1'))# bbox=props)
@@ -356,8 +359,8 @@ def plot_scatter_area(vza_switch,x,y,colour,z, perf_fit,fit_points, subtitle, ti
         
         sc = ax1.scatter(x,y, c=colour, alpha = 0.5,vmin=0,vmax=c_max,linewidth=0.0)
         #ax1.scatter(outlier_fires['M11_summed_FRP'],outlier_fires['M11_summed_FRP'], c= 'r', alpha = 0.1, linewidth=0.3 )
-        ax1.set_ylabel(' M8 Pixel count ',fontsize=9)
-        ax1.set_xlabel('M11 Pixel count',fontsize=9)
+        ax1.set_ylabel(' M8 '+ axis_lable,fontsize=9)
+        ax1.set_xlabel(' M11 '+ axis_lable,fontsize=9)
         cb = plt.colorbar(sc)
         cb.ax.set_ylabel('Absolute VZA difference (Degrees)',fontsize=9)
         plt.subplots_adjust(top = 0.75)
@@ -368,8 +371,8 @@ def plot_scatter_area(vza_switch,x,y,colour,z, perf_fit,fit_points, subtitle, ti
         axes.set_xlim([0,fire_max])
         axes.set_ylim([0,fire_max])
         ax1.legend(loc='upper left', fontsize=8)
-        plt.xticks(np.arange(0, fire_max+1, step=10),fontsize=7)
-        plt.yticks(np.arange(0, fire_max+1, step=10),fontsize=7)
+        plt.xticks(np.arange(0, fire_max+1, step=scaling_factor),fontsize=9)
+        plt.yticks(np.arange(0, fire_max+1, step=scaling_factor),fontsize=9)
         plt.setp(ax1.get_xticklabels(), rotation=40, horizontalalignment='right')
         ax1.text(0.95,0.05,textstr1, transform=ax1.transAxes, fontsize=8,
             verticalalignment='bottom',ha='right',bbox=dict(facecolor='white', alpha = 0.8, edgecolor='black', boxstyle='round,pad=1'))# bbox=props)
@@ -379,6 +382,72 @@ def plot_scatter_area(vza_switch,x,y,colour,z, perf_fit,fit_points, subtitle, ti
         plt.tight_layout()
         plt.savefig(title + subtitle, dpi = 800, bbox_inches='tight')
         plt.close()
+
+def plot_scatter_log(vza_switch,x,y,colour,z, perf_fit,fit_points, subtitle, title,textstr1,textstr2,c_max,fire_max, xaxis_lable,yaxis_lable,scaling_factor): # 
+    
+    if vza_switch == False:
+
+        fig = plt.figure(figsize = [5,6])
+        ax1 = fig.add_subplot(111,aspect='equal')
+        sc = ax1.scatter(x,y, c='orangered',s=15, alpha = 0.6,linewidth=0.0)
+        #ax1.scatter(outlier_fires['M11_summed_FRP'],outlier_fires['M11_summed_FRP'], c= 'r', alpha = 0.1, linewidth=0.3 )
+        ax1.set_ylabel( yaxis_lable ,fontsize=9)
+        ax1.set_xlabel(xaxis_lable,fontsize=9)
+        plt.subplots_adjust(top = 0.75)
+        ax1.plot(fit_points,z,color='b' , label = 'OLS fit')
+        ax1.plot(fit_points,perf_fit,color = 'k', label = '1:1 fit', ls = 'dashdot')
+        plt.gca().set_aspect('equal', adjustable='box')
+        axes = plt.gca()
+        #axes.set_xlim([0,fire_max])
+        #axes.set_ylim([0,fire_max])
+        ax1.legend(loc='upper left', fontsize=8)
+        plt.xscale('log')
+        plt.yscale('log')
+        ax1.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+        #ax1.set_xticks([0,1])
+        #ax1.set_yticks([0,1])
+        plt.setp(ax1.get_xticklabels(), rotation=40, horizontalalignment='right')
+        ax1.text(0.90,0.05,textstr1, transform=ax1.transAxes, fontsize=8,
+            verticalalignment='bottom',ha='right',bbox=dict(facecolor='white', alpha = 0.8, edgecolor='black', boxstyle='round,pad=1'))# bbox=props)
+        ax1.text(0.90,0.20,textstr2, transform=ax1.transAxes, fontsize=8,
+            verticalalignment='bottom',ha='right',bbox=dict(facecolor='white', alpha = 0.8, edgecolor='black', boxstyle='round,pad=1'))
+        plt.tight_layout()
+        plt.savefig(title + subtitle, dpi = 800, bbox_inches='tight')
+        plt.close()
+       
+        
+    elif  vza_switch == True:
+            
+        fig = plt.figure(figsize = [5,5])
+        ax1 = fig.add_subplot(111)
+        
+        sc = ax1.scatter(x,y, c=colour, alpha = 0.5,vmin=0,vmax=c_max,linewidth=0.0)
+        #ax1.scatter(outlier_fires['M11_summed_FRP'],outlier_fires['M11_summed_FRP'], c= 'r', alpha = 0.1, linewidth=0.3 )
+        ax1.set_ylabel(' M8 '+ axis_lable,fontsize=9)
+        ax1.set_xlabel(' M11 '+ axis_lable,fontsize=9)
+        cb = plt.colorbar(sc)
+        cb.ax.set_ylabel('Absolute VZA difference (Degrees)',fontsize=9)
+        plt.subplots_adjust(top = 0.75)
+        ax1.plot(fit_points,z,color='r' , label = 'OLS fit')
+        ax1.plot(fit_points,perf_fit,color = 'b', label = '1:1 fit', ls = 'dashdot')
+        plt.gca().set_aspect('equal', adjustable='box')
+        axes = plt.gca()
+        axes.set_xlim([0,fire_max])
+        axes.set_ylim([0,fire_max])
+        ax1.legend(loc='upper left', fontsize=8)
+        plt.xticks(np.arange(0, fire_max+1, step=scaling_factor),fontsize=9)
+        plt.yticks(np.arange(0, fire_max+1, step=scaling_factor),fontsize=9)
+        plt.setp(ax1.get_xticklabels(), rotation=40, horizontalalignment='right')
+        ax1.text(0.95,0.05,textstr1, transform=ax1.transAxes, fontsize=8,
+            verticalalignment='bottom',ha='right',bbox=dict(facecolor='white', alpha = 0.8, edgecolor='black', boxstyle='round,pad=1'))# bbox=props)
+        #ax1.text(0.5,0.95,textstr2, transform=ax1.transAxes, fontsize=8)
+            #bbox=dict(facecolor='white', alpha = 0.8,  boxstyle='round,pad=1'))# bbox=props)
+        plt.suptitle(textstr2,fontsize=10)
+        plt.tight_layout()
+        plt.savefig(title + subtitle, dpi = 800, bbox_inches='tight')
+        plt.close()
+
+
 
 
 

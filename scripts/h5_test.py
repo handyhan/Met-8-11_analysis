@@ -13,16 +13,16 @@ import os
 from math import sin, cos, sqrt, atan2, radians,atan, degrees
 
 
-lon = './SEVIRI_Static/hdf5_lsasaf_msg_lon_msg-disk'
-lat = './SEVIRI_Static/hdf5_lsasaf_msg_lat_msg-disk'
+lon = "C:/Users/Hannah.N/Documents/Earth_Observation/sandbox/SEVIRI_Static/HDF5_LSASAF_MSG_LON_IODC-Disk_201711300000"
+lat = "C:/Users/Hannah.N/Documents/Earth_Observation/sandbox/SEVIRI_Static/HDF5_LSASAF_MSG_LAT_IODC-Disk_201711300000"
 lon = h5py.File(lon,'r')
 lat = h5py.File(lat,'r')
 lon = lon[u'LON']
 lat = lat[u'LAT']
 latitudes = np.array([[0,0,0,0]])
 
-section = [2500,3000]
-for k in range(0,1,1):
+section = [500,1000,1500,2000,2500,3000]
+for k in range(0,6,1):
     
     for i in range(section[k],section[(k+1)],1):
         for j in range(0,3712,1):
@@ -30,7 +30,7 @@ for k in range(0,1,1):
                 latitudes = np.append(latitudes, [[lat[i][j],lon[i][j],i,j]], axis = 0 )
                 
     df = pd.DataFrame(data = latitudes[1:,:], columns = ['LATITUDE', 'LONGITUDE','I_val', 'J_val'] )
-    df.to_csv("./txt_data/MSG_lat_lon_" + str(section[k]), header=True,index=False)
+    df.to_csv("C:/Users/Hannah.N/Documents/Earth_Observation/sandbox/txt_data/MSG8_lat_lon_" + str(section[k]), header=True,index=False)
 
 """
 df = pd.read_csv("./txt_data/MSG_lat_lon_1000")

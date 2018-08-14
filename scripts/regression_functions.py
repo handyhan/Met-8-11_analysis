@@ -17,6 +17,23 @@ import sys
 import math
 
 
+def regression_log(df,x_name,y_name):
+    df[y_name] = np.log10(df[y_name])
+    df[x_name] = np.log10(df[x_name])
+    mod = ols(formula = y_name +' ~ '+ x_name , data = df)
+    res= mod.fit()
+    results = (res.summary())    
+    test = res.outlier_test()
+    outlier_ix = test[test['bonf(p)'] < 0.05].index
+    slope = res.params[x_name]
+    intercept = res.params.Intercept
+    r_squared = res.rsquared
+    se = res.bse[x_name]
+    residual = res.resid
+    
+    return results, outlier_ix,slope, intercept,r_squared, se, residual
+
+
 def regression_free(df,x_name,y_name):
     mod = ols(formula = y_name +' ~ '+ x_name , data = df)
     res= mod.fit()
