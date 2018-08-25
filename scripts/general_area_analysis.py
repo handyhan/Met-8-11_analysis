@@ -1,8 +1,9 @@
-import os
-import h5py
 import numpy as np
 import pandas as pd
-from time import gmtime, strftime
+from datetime import datetime, timedelta
+import math
+from general_plots import plot_scatter_simple
+from regression_functions import regression_c0,regression_free,odr_regression
 
 
 def get_grid_bounds(latmin,latmax,lonmin,lonmax,resolution):
@@ -19,7 +20,8 @@ def get_gridded(time,df,lat_bounds,lon_bounds, sat ,resolution):  #dataframe of 
     
     if df.empty :
         print "No pixels at time " + str(time)
-        pass                                                                       # pass if no concurrent pixels
+        df_empty = pd.DataFrame()
+        return df_empty                                                                       # pass if no concurrent pixels
     else:
        
         lats_binned = np.digitize(df['LATITUDE'].values[:],lat_bounds)       # generate an array with indicise indicating in which grid cell the lats/lons belong
@@ -37,8 +39,11 @@ def get_gridded(time,df,lat_bounds,lon_bounds, sat ,resolution):  #dataframe of 
         grid_df.long_box  = grid_df.long_box.apply(lambda x: x.lstrip('0')).astype(int)
         # sum the FRP or the pixels in each gridcell and calculate the uncertainty
         frp_sum = df.groupby(['GRID_NO'])['FRP'].agg('sum')
-        df['FRP_UNCERTAINTY_2'] = df['FRP_UNCERTAINTY'].apply(lambda x: x**2 )                  #calculate uncertanty as root of sum of squared individual uncertainty
-        frp_err = np.sqrt(df.groupby(['GRID_NO'])['FRP_UNCERTAINTY_2'].agg('sum'))
+        if sat == 'MODIS':
+            pass
+        else:
+            df['FRP_UNCERTAINTY_2'] = df['FRP_UNCERTAINTY'].apply(lambda x: x**2 )                  #calculate uncertanty as root of sum of squared individual uncertainty
+            frp_err = np.sqrt(df.groupby(['GRID_NO'])['FRP_UNCERTAINTY_2'].agg('sum'))
         #make cell bounds and centra
         lat_max = grid_df.lat_box.apply(lambda x:lat_bounds[(x)])                                           
         lat_min= grid_df.lat_box.apply(lambda x:lat_bounds[(x-1)])   
@@ -47,12 +52,13 @@ def get_gridded(time,df,lat_bounds,lon_bounds, sat ,resolution):  #dataframe of 
         long_min = grid_df.long_box.apply(lambda x:lon_bounds[(x-1)])
         long_center = (long_max + long_min)/2
         # make df grid with all info
-        grid = pd.DataFrame({'GRID_NO':fire_ids, 'summed_FRP': frp_sum.values[:],'FRP_uncertainty':frp_err.values[:], 'pixel_count':pixel_count , 
+        grid = pd.DataFrame({'GRID_NO':fire_ids, 'summed_FRP': frp_sum.values[:], 'pixel_count':pixel_count , 
                              'SAT': sat,'LAT_MIN':lat_min,'LAT_MAX':lat_max,'LAT_CENTER':lat_center, 'LONG_MIN':long_min,'LONG_MAX':long_max,'LONG_CENTER':long_center, 'TIME_WINDOW':time })
         #get grid_cell VZA from precomputed gridded VZA map
         if sat == 'MODIS':
             pass
         else:
+            grid['FRP_uncertainty'] = frp_err.values[:]
             vza_1deg = pd.read_csv(BaseDir + "/txt_data/MET_" + sat + "_1Deg_VZA")
             grid['loc_marker'] = grid['LAT_CENTER']*1000 + grid['LONG_CENTER']
             vza_1deg['loc_marker'] = vza_1deg['LATITUDE']*1000 + vza_1deg['LONGITUDE']  
@@ -64,35 +70,77 @@ def get_gridded(time,df,lat_bounds,lon_bounds, sat ,resolution):  #dataframe of 
             grid = grid.drop(columns=['loc_marker'])
             
         return grid
+    
+    
+
+
+def match_grids(date_range, msg_df, modis_df):    # takes input of MODIS_gridded and MSG_gridded files generated my proccesing script in df format with time as axis    
+    first=True
+    for k in range(0,len(date_range),1):        
+        time = date_range[k]    
+        start_time = time - pd.Timedelta(minutes=8)
+        end_time = time + pd.Timedelta(minutes=8)    
+        sub_mod = modis_df.loc[start_time:end_time]
+        sub_msg = msg_df.loc[start_time:end_time]
+        sub_msg = msg_df.loc[start_time:end_time]        
+        if sub_mod.empty or sub_msg.empty:
+            print "No Concurent gridcells at time " + str(time)                      ## pass if no concurrent pixels
+            sub_msg_processed = pd.DataFrame()
+        else:            
+            unique_mod_cells = np.unique(sub_mod['GRID_NO'])                                # find grid cells at this time unique to both MODIS and MSG
+            matching_msg_cells = sub_msg[sub_msg['GRID_NO'].isin(unique_mod_cells)]
+            unique_msg_match_cells = np.unique(matching_msg_cells['GRID_NO'])
+            mod_full_match = sub_mod[sub_mod['GRID_NO'].isin(unique_msg_match_cells)]
+            unique_mod_cells = np.unique(mod_full_match['GRID_NO'])
+            msg_full_match = matching_msg_cells[matching_msg_cells['GRID_NO'].isin(unique_mod_cells)]            
+            msg_full_match.sort_values('GRID_NO')
+            mod_full_match.sort_values('GRID_NO')
+            if first == True:
+                msg_match = msg_full_match
+                mod_match = mod_full_match
+            else:
+                msg_match = msg_match.append(msg_full_match)                                # append all matches from all times together
+                mod_match = mod_match.append(mod_full_match)                           
+            first = False
+    # combine matched grid cells into a single df
+    matching_cells = mod_match
+    matching_cells = matching_cells.rename(columns={'summed_FRP':'MODIS_FRP','pixel_count':'MODIS_PIXEL_COUTN'})
+    matching_cells['MSG_FRP'] = msg_match['summed_FRP'].values[:]    
+    matching_cells['MSG_PIXEL_COUNT'] = msg_match['pixel_count'].values[:]
+    matching_cells = matching_cells.drop(columns=['SAT'])        
+    matching_cells['FRP_DIFF'] = matching_cells['MODIS_FRP'] - matching_cells['MSG_FRP']       # calculate the difference in FRP values
+    return matching_cells
+
+
+def fit_and_plot_OLS_bins(matching_cells,x_string,y_string,scaling_factor):     #in put is df with matching cells, x and y are df labels for x and y variables, scaling factor, axis to the nearest scaling factor 
+    x = x_string
+    y = y_string
+    results, outlier_ix ,slope_all, intercept_all, r2_all, std_err_all, residual = regression_free(matching_cells, x,y) # run the regression ( regression_c0 can replace and has intecept at 0)
+    ####remove outliers and re-fit
+    #fire_data = fire_data[~fire_data.iloc[:].index.isin(outlier_ix)]
+    #results, outlier_ix ,slope_all, intercept_all, r2_all, std_err_all, residual = regression_free(fire_data, 'M11_summed_FRP','M8_summed_FRP')
+    #outlier_count_all = len(outlier_ix)
+    #outlier_fires = fire_data[fire_data.iloc[:].index.isin(outlier_ix)]
+    #plot_bin_maps(outlier_fires,fires_m8,'clusters')
+    #######    
+    fire_max = max(matching_cells[x].max(),matching_cells[y].max())
+    fire_max  = int(math.ceil(fire_max / scaling_factor)) * scaling_factor
+    bias_all = matching_cells['FRP_DIFF'].mean()                                        # calculate the mean bias
+    SD_all = matching_cells['FRP_DIFF'].std()                                           # standard deviation
+    rmsd_all = math.sqrt(bias_all**2 + SD_all**2)                                       # and rmsd
+    fire_count_all = len(matching_cells[x])
+    fit_points = (np.array([0,fire_max]))                                               # make points to plot the fit and the 1:1 line
+    perf_fit = (fit_points)*1 + 0                                                       # 1:1
+    z = (fit_points)*slope_all + intercept_all                                          # ols fit
+    textstr1 = 'y = %.2fx + %.2f \n Grid-cell count=%d \n R$^{2}$=%.3f\n SE=%.3f'%(slope_all, intercept_all,fire_count_all, r2_all, std_err_all)
+    textstr2 = 'Bias=%.3f \n  Scatter =%.3f \n RMSD=%.3f'%(bias_all, SD_all, rmsd_all)
+    plot_scatter_simple(matching_cells[x],matching_cells[y],z,perf_fit,fit_points,(BaseDir+'/Plots/AREA_OLS'), textstr1,textstr2, fire_max, x,y,scaling_factor)  # plot the graph and save in set loc
+
+
+
+
 
 """
-def write_gridded_file(lonmin,lonmax,latmin,latmax,m8_df,m11_df):   
-    m8_df = m8_df[(m8_df['LATITUDE'] > latmin) & (m8_df['LATITUDE'] < latmax) ]
-    m8_df = m8_df[(m8_df['LONGITUDE'] > lonmin) & (m8_df['LONGITUDE'] < lonmax) ]
-    m8_df = m8_df.reset_index(drop=True)
-    m11_df = m11_df[(m11_df['LATITUDE'] > latmin) & (m11_df['LATITUDE'] < latmax) ]
-    m11_df = m11_df[(m11_df['LONGITUDE'] > lonmin) & (m11_df['LONGITUDE'] < lonmax) ]
-    m11_df = m11_df.reset_index(drop=True)
-    
-    m8_grid,grid_boxes_m8 = proccess_grid(m8_df,lon,lat,'8',resolution)
-    m11_grid,grid_boxes_m11 = proccess_grid(m11_df,lon,lat,'11',resolution) 
-     
-    joint_boxes =  np.concatenate([grid_boxes_m8,grid_boxes_m11])
-    joint_boxes = pd.Series(data=joint_boxes )
-    joint_boxes = joint_boxes[joint_boxes.duplicated()] 
-    m8_grid = m8_grid[m8_grid['GRID_NO'].isin(joint_boxes.values[:])]
-    m11_grid = m11_grid[m11_grid['GRID_NO'].isin(joint_boxes.values[:])]
-    
-    grid_df = pd.DataFrame(joint_boxes.str.split(' ',1).tolist(), columns = ['lat_box','long_box'])
-    grid_df.lat_box  = (grid_df.lat_box.apply(lambda x: x.lstrip('0')).astype(int))-1
-    grid_df.long_box  = (grid_df.long_box.apply(lambda x: x.lstrip('0')).astype(int))-1
-    
-    #regrid_vza(lonmin,lonmax,latmin,latmax)
-    grid = pd.concat([m8_grid,m11_grid])    
-    return grid
-"""   
-
-
 BaseDir = "C:/Users/Hannah.N/Documents/Earth_Observation/sandbox" 
 lon_max = 20
 lon_min = -15
@@ -100,21 +148,23 @@ lat_max = -5
 lat_min = -10
 resolution = 1.0
 
-print isinstance('bob', basestring)
-
-t = np.array([datetime(2018,6,16,12,15),datetime(2018,6,16,12,15)])                                 # supply one off times
-#t = np.arange(datetime(2018,6,18), datetime(2018,6,19), timedelta(minutes=15)).astype(datetime)
-for k in range(0,len(t),1):
-
-
-    modis_df = pd.read_csv(BaseDir + "/txt_data/MODIS/MODIS_1806160000_1806192300", parse_dates=True, index_col='TIME') 
-    modis_df = modis_df[(modis_df['LATITUDE'] > lat_min) & (modis_df['LATITUDE'] < lat_max) ]                   #cut region
-    modis_df = modis_df[(modis_df['LONGITUDE'] > lon_min) & (modis_df['LONGITUDE'] < lon_max) ]
     
-    lat_bounds,lon_bounds = get_grid_bounds(lat_min,lat_max,lon_min,lon_max,resolution)   
-    grid_df = get_gridded(t[k],modis_df,lat_bounds,lon_bounds, 'MODIS' ,resolution)
-    
-    
+modis_df = pd.read_csv(BaseDir + "/TEST_DATA/MODIS_gridded_full", parse_dates=True,index_col='TIME_WINDOW') 
+msg_df = pd.read_csv(BaseDir + "/TEST_DATA/MSG_gridded_full", parse_dates=True,index_col='TIME_WINDOW') 
+
+t = np.arange(datetime(2014,8,1), datetime(2014,9,1), timedelta(minutes=15)).astype(datetime)
+matching_cells = match_grids(t, msg_df, modis_df)
+matching_cells.to_csv(BaseDir + "/TEST_DATA/matching_cells", header=True,index=True) 
+
+matching_cells = matching_cells[(matching_cells['MSG_FRP'] > 200) & (matching_cells['MODIS_FRP'] > 200)]
+fit_and_plot_OLS_bins(matching_cells,'MODIS_FRP','MSG_FRP',5000)
+
+"""
+
+
+
+
+
     
 
 
